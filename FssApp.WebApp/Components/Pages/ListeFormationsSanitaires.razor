@@ -1,0 +1,41 @@
+﻿@page "/liste-formations-sanitaires"
+@using FssApp.CoreBusiness.Models
+
+@rendermode InteractiveServer
+
+@inject IAfficherFormationsSanitairesUseCase AfficherFormationsSanitairesUseCase
+
+<h3>Liste formations sanitaires</h3>
+
+<div class="page-size-chooser">
+    Items per page:
+    <select @bind="@pagination.ItemsPerPage">
+        <option>5</option>
+        <option>10</option>
+        <option>20</option>
+        <option>50</option>
+    </select>
+</div>
+
+<div class="grid">
+    <QuickGrid Items="@itemsQueryable" Pagination="@pagination">
+        <PropertyColumn Property="@(c => c.Nom )" Sortable="true" class="fosa-nom"/>
+        <PropertyColumn Property="@(c => c.Adresse)" Sortable="true" Align="Align.Right" />
+        <PropertyColumn Property="@(c => c.Telephone)" Sortable="true" Align="Align.Right" />
+        <PropertyColumn Property="@(c => c.ResponsablePrenom)" Sortable="true" Align="Align.Right" />
+        <PropertyColumn Property="@(c => c.ResponsableNom)" Sortable="true" Align="Align.Right" />
+    </QuickGrid>
+</div>
+
+<Paginator State="@pagination" />
+    
+@code {
+    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+    IQueryable<FormationSanitaire>? itemsQueryable;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var listeformationsSanitaires = await AfficherFormationsSanitairesUseCase.ExecuteAsync(string.Empty);
+        itemsQueryable = listeformationsSanitaires.AsQueryable();
+    }
+}
