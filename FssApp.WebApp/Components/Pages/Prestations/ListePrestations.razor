@@ -1,0 +1,152 @@
+﻿@page "/prestations"
+
+@rendermode InteractiveServer
+
+@inject NavigationManager NavigationManager
+
+@inject IViewPrestationsUseCase ViewPrestationsUseCase
+@inject IGetPrestationByIdUseCase GetPrestationByIdUseCase
+@inject IDeletePrestationByIdUseCase DeletePrestationByIdUseCase
+
+<MudDataGrid T="PrestationDto" MultiSelection="true" Items="@Prestations" SortMode="SortMode.Multiple" Filterable="true" QuickFilter="@quickFilter"
+             Hideable="true" FixedHeader ShowMenuIcon Height="550px" RowClick="@RowClicked" RowContextMenuClick="@RowRightClicked" 
+             SelectedItemsChanged="@SelectedItemsChanged" Virtualize>
+    <ToolBarContent>
+        <MudTextField @bind-Value="searchString" Placeholder="Recherche" Adornment="Adornment.Start" Immediate="true"
+            AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        <MudSpacer />
+        <MudText Typo="Typo.h6">LISTE DES FORMATIONS SANITAIRES</MudText>
+    </ToolBarContent>
+    <Columns>
+        @* <SelectColumn T="PrestationDto" /> *@
+        <PropertyColumn Property="x => x.PrestationId" Title="PRESTATION ID" />
+        <PropertyColumn Property="x => x.Annee" Title="Année" />
+        <PropertyColumn Property="x => x.Mois" Title="Mois" />
+        <PropertyColumn Property="x => x.FosaId" Title="Fosa ID" />
+        <PropertyColumn Property="x => x.Fosa" Title="Nom fosa" />
+        <PropertyColumn Property="x => x.Province" Title="Province" SortBy="@sortBy" />
+        <PropertyColumn Property="x => x.District" Title="District" />
+        <PropertyColumn Property="x => x.ZoneDeSante" title="Zone santé" />
+        <PropertyColumn Property="x => x.Prestataire" Title="Prestataire" />
+        <PropertyColumn Property="x => x.PrestationCategorie" Title="Prestation catégorie" />
+        <PropertyColumn Property="x => x.EffectifDeclare" Title="Effectif déclaré" />
+        <PropertyColumn Property="x => x.CoutUnitaireDeclare" Title="C.U.déclaré" />
+        <PropertyColumn Property="x => x.CoutTotalDeclare" Title="C.T. déclaré" />
+        <PropertyColumn Property="x => x.EffectifVerifie" Title="Effectif vérifié" />
+        <PropertyColumn Property="x => x.CoutUnitaireVerifie" Title="C.U. vérifié" />
+        <PropertyColumn Property="x => x.CoutTotalVerifie" Title="C.T. vérifié" />
+        <TemplateColumn CellClass="d-flex justify-end">
+            <CellTemplate>
+                <MudStack Row>
+                    <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Success"
+                                Href=@($"/edit-prestation/{context.Item.PrestationId}")>Modifier</MudButton>
+                    <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Warning"
+                               OnClick="@(async () => await HandleDelete(context.Item.PrestationId))">Supprimer</MudButton>
+                </MudStack>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <div class="d-flex align-items-start">
+            <MudDataGridPager T="PrestationDto" />
+        </div>
+    </PagerContent>
+</MudDataGrid>
+
+<div class="mt-4">
+<MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/add-prestation">Ajouter prestation</MudButton>
+</div>
+
+@* <div class="d-flex flex-wrap mt-4">
+    <MudSwitch @bind-Value="@sortNameByLength" Color="Color.Primary">Sort Name Column By Length</MudSwitch>
+</div>
+
+<MudExpansionPanels Style="flex:1">
+    <MudExpansionPanel Text="Show Events">
+        @foreach (var message in events)
+        {
+            <MudText Typo="@Typo.body2">@message</MudText>
+        }
+        @if(events.Count > 0) 
+        {
+            <div class="d-flex">
+                <MudSpacer/>
+                <MudButton Class="mt-3" ButtonType="ButtonType.Button" Variant="Variant.Filled" OnClick="@(() => events.Clear())">Clear</MudButton>
+            </div>
+        }
+    </MudExpansionPanel>
+</MudExpansionPanels> *@
+
+@code {
+    [Inject] ISnackbar Snackbar { get; set; }
+
+    private IEnumerable<PrestationDto> Prestations = new List<PrestationDto>();
+    private string searchString;
+    private bool sortNameByLength;
+    private List<string> events = new(); 
+
+    protected async override Task OnInitializedAsync()
+    {
+        Prestations = await GetAllPrestationAsync();
+    }
+
+    private async Task<IEnumerable<PrestationDto>> GetAllPrestationAsync()
+    {
+        return await ViewPrestationsUseCase.ExecuteAsync();
+    }
+
+    public async Task HandleDelete(int prestationId)
+    {
+        var prestation = await GetPrestationByIdUseCase.ExcuteAsync(prestationId);
+        await DeletePrestationByIdUseCase.ExecuteAsync(prestationId);
+        
+        Snackbar.Add($"Prestation (ID : {prestationId} - Fosa : {prestation.FormationSanitaire.Nom}) \n supprimée avec succès!", MudBlazor.Severity.Info);
+
+        await Task.Delay(3000);
+        NavigationManager.Refresh(true);
+    }
+
+    private Func<PrestationDto, object> sortBy => x =>
+    {
+        if (sortNameByLength)
+            return x.Fosa.Length;
+        else
+            return x.Fosa;
+    };
+
+    private Func<PrestationDto, bool> quickFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+
+        if (x.Province.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (x.District.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (x.ZoneDeSante.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (x.Fosa.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    };
+
+    // events
+    void RowClicked(DataGridRowClickEventArgs<PrestationDto> args)
+    {
+        events.Insert(0, $"Event = RowClick, Index = {args.RowIndex}, Data = {System.Text.Json.JsonSerializer.Serialize(args.Item)}");
+    }
+
+    void RowRightClicked(DataGridRowClickEventArgs<PrestationDto> args)
+    {
+        events.Insert(0, $"Event = RowRightClick, Index = {args.RowIndex}, Data = {System.Text.Json.JsonSerializer.Serialize(args.Item)}");
+    }
+
+    void SelectedItemsChanged(HashSet<PrestationDto> items)
+    {
+        events.Insert(0, $"Event = SelectedItemsChanged, Data = {System.Text.Json.JsonSerializer.Serialize(items)}");
+    }
+}

@@ -11,5 +11,5 @@ public partial class TypeFormationSanitaire
 
     public string? Code { get; set; }
 
-    public virtual ICollection<FormationSanitaire> FormationSanitaires { get; set; } = new List<FormationSanitaire>();
+    public virtual ICollection<FormationSanitaire>? FormationSanitaires { get; set; } = new List<FormationSanitaire>();
 }

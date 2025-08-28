@@ -11,5 +11,5 @@ public partial class Prestataire
 
     public virtual ICollection<PrestationsSyntheseHr> PrestationsSyntheseHrs { get; set; } = new List<PrestationsSyntheseHr>();
 
-    public virtual ICollection<PrestationsSynthese> PrestationsSyntheses { get; set; } = new List<PrestationsSynthese>();
+    public virtual ICollection<PrestationsSynthese>? PrestationsSyntheses { get; set; } = new List<PrestationsSynthese>();
 }

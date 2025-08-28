@@ -17,5 +17,5 @@ public partial class District
 
     public virtual Province Province { get; set; } = null!;
 
-    public virtual ICollection<ZoneDeSante> ZoneDeSantes { get; set; } = new List<ZoneDeSante>();
+    public virtual ICollection<ZoneDeSante>? ZoneDeSantes { get; set; } = new List<ZoneDeSante>();
 }

@@ -1,0 +1,204 @@
+﻿@page "/add-prestation"
+
+@inject IAddPrestationUseCase AddPrestationUseCase
+@inject IViewFosasUseCase ViewFosasUseCase
+@inject IGetFosaTypesUseCase GetFosaTypesUseCase
+@inject IGetZoneDeSanteUseCase GetZoneDeSantesUseCase
+@inject IGetPrestatairesUseCase GetPrestatairesUseCase
+@inject IGetPrestationCategoriesUseCase GetPrestationCategoriesUseCase
+
+@inject NavigationManager NavigationManager
+
+<h2>ENREGISTRER UNE NOUVELLE PRESTATION</h2>
+
+<MudCard>
+    <MudCardContent>
+        <MudForm Model="@prestation" @ref="form" Validation="@(prestationValidator.ValidateValue)" ValidationDelay="0">
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    @* <MudSelect Label="Nom de la fosa" @bind-Value="prestation.FormationSanitaireId"
+                               For="@(() => prestation.FormationSanitaireId)"
+                               Placeholder="Entrez le type de fosa" Immediate="true">
+                        <MudSelectItem Value="0">@("")</MudSelectItem>
+                        @foreach (var fosa in Fosas)
+                        {
+                            <MudSelectItem Value="@fosa.Id">@($"{fosa.Id} | {fosa.Nom} ({fosa.ZoneDeSante.District.Province.Nom}, {fosa.ZoneDeSante.District.Nom}, {fosa.ZoneDeSante.Nom})")</MudSelectItem>
+                        }
+                    </MudSelect> *@
+                    <MudStack>
+                        
+                        <MudAutocomplete T="string" Label="Nom de la fosa" @bind-Value="value1" SearchFunc="@SearchFosas"
+                                        Clearable="true" ResetValueOnEmptyText="true" MaxItems="null" />
+                   
+                    </MudStack>
+                    <MudSelect Label="Prestataire" @bind-Value="prestation.PrestataireId"
+                               For="@(() => prestation.PrestataireId)"
+                               Placeholder=@("Entrez le prestataire") Immediate="true">
+                        <MudSelectItem value="0">@("")</MudSelectItem>
+                        @foreach (var prestataire in ListePrestataires)
+                        {
+                            <MudSelectItem Value="@prestataire.Id">@prestataire.Type</MudSelectItem>
+                        }
+                    </MudSelect>
+                    @* <MudTextField Label="Nom fosa" @bind-Value="fosa.Nom" For="@(() => fosa.Nom)" Immediate="true" />
+                    <MudTextField Label="Adresse" @bind-Value="fosa.Adresse" For="@(() => fosa.Adresse)" />
+                    <MudTextField Label="N° Téléphone" @bind-Value="fosa.Telephone" For="@(() => fosa.Telephone)" />
+                    <MudTextField Label="Nom du responsable" @bind-Value="fosa.ResponsableNom" For="@(() => fosa.ResponsableNom)" />
+                    <MudTextField Label="Postnom du responsable" @bind-Value="fosa.ResponsablePostNom" For="@(() => fosa.ResponsablePostNom)" />
+                    <MudTextField Label="Prénom du responsable" @bind-Value="fosa.ResponsablePrenom" For="@(() => fosa.ResponsablePrenom)" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="N° Téléphone du responsable" @bind-Value="fosa.ResponsableTelephone" For="@(() => fosa.ResponsableTelephone)" />
+                    <MudTextField Label="Adresse email du responsable" @bind-Value="fosa.ResponsableEmail" For="@(() => fosa.ResponsableEmail)" />
+                    <MudSelect Label="Statut" @bind-Value="fosa.Statut">
+                        <MudSelectItem Value=@("ETATIQUE")>Etatique</MudSelectItem>
+                        <MudSelectItem Value=@("CONFESSIONNEL")>Confessionnel</MudSelectItem>
+                        <MudSelectItem Value=@("PRIVE")>Privé</MudSelectItem>
+                    </MudSelect>
+                    <MudSelect Label="Fosa conventionnée" @bind-Value="fosa.FosaConventionnee" For="@(() => fosa.FosaConventionnee)" >
+                        <MudSelectItem Value="false">Non</MudSelectItem>
+                        <MudSelectItem Value="true">Oui</MudSelectItem>
+                    </MudSelect>
+                    <MudSelect Label="Type de fosa" @bind-Value="fosa.TypePrestationsSyntheseId" For="@(() => fosa.TypePrestationsSyntheseId)"
+                               Placeholder=@("Entrez le type de fosa") Immediate="true">
+                        <MudSelectItem Value="0">@("")</MudSelectItem>
+                        @foreach (var typeDeFosa in ListeTypeDeFosa)
+                        {
+                            <MudSelectItem Value="@typeDeFosa.Id">@typeDeFosa.Code</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudSelect Label="Zone de santé" @bind-Value="fosa.ZoneDeSanteId" For="@(() => fosa.ZoneDeSanteId)"
+                               Placeholder=@("Entrez la zone de santé") Immediate="true">
+                        <MudSelectItem Value="0">@("")</MudSelectItem>
+                        @foreach (var zoneDeSante in ListeZoneDeSante)
+                        {
+                            <MudSelectItem Value="@zoneDeSante.Id">@zoneDeSante.Nom</MudSelectItem>
+                        }
+                    </MudSelect> *@
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </MudCardContent>
+    <MudCardActions Class="d-flex">
+        <MudButton Class="ml-auto" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await OnValidSubmitAsync())">Enregistrer</MudButton>
+    </MudCardActions>
+</MudCard>
+
+@code {
+    [Inject] ISnackbar Snackbar { get; set; }
+    private MudForm form;
+
+    private PrestationsSynthese prestation { get; set; } = new PrestationsSynthese();
+
+    private IEnumerable<FormationSanitaire> Fosas = new List<FormationSanitaire>();
+    private IEnumerable<TypeFormationSanitaire> ListeTypeDeFosa = new List<TypeFormationSanitaire>();
+    private IEnumerable<ZoneDeSante> ListeZoneDeSante = new List<ZoneDeSante>();
+    private IEnumerable<Prestataire> ListePrestataires = new List<Prestataire>();
+    private IEnumerable<PrestationCategorie> ListePrestationCategories = new List<PrestationCategorie>();
+
+    PrestationValidator prestationValidator = new PrestationValidator();
+
+    private List<string> fosasInfo = new List<string>();
+    private string value1;
+
+    protected async override Task OnInitializedAsync()
+    {
+        ListeTypeDeFosa = await GetFosaTypesAsync();
+        ListeZoneDeSante = await GetAllZoneDeSanteAsync();
+        ListePrestataires = await GetPrestatairesAsync();
+        ListePrestationCategories = await GetPrestationCategoriesAsync();
+
+        Fosas = await GetFosasAsync();
+        FosasInfo();
+    }
+
+    private IEnumerable<string> FosasInfo()
+    {
+        foreach (var fosa in Fosas)
+        {
+            var data = $"{fosa.Id} | {fosa.Nom} ({fosa.ZoneDeSante.District.Province.Nom}," +
+                            $"{fosa.ZoneDeSante.District.Nom}, {fosa.ZoneDeSante.Nom})";
+            fosasInfo.Add(data);
+        }
+
+        return fosasInfo;
+    }
+
+    private async Task<IEnumerable<string>> SearchFosas(string value, CancellationToken token)
+    {
+        // In real life use an asynchronous function for fetching data from an api.
+        await Task.Delay(5, token);
+
+        // if text is null or empty, show complete list
+        if (string.IsNullOrEmpty(value))
+            return fosasInfo;
+        return fosasInfo.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private async Task<IEnumerable<string>> SearchPrestataires(string value, CancellationToken token)
+    {
+        // In real life use an asynchronous function for fetching data from an api.
+        await Task.Delay(5, token);
+
+        // if text is null or empty, show complete list
+        if (string.IsNullOrEmpty(value))
+            return fosasInfo;
+        return fosasInfo.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private async Task<IEnumerable<string>> SearchPrestationCat(string value, CancellationToken token)
+    {
+        // In real life use an asynchronous function for fetching data from an api.
+        await Task.Delay(5, token);
+
+        // if text is null or empty, show complete list
+        if (string.IsNullOrEmpty(value))
+            return fosasInfo;
+        return fosasInfo.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private async Task<IEnumerable<Prestataire>> GetPrestatairesAsync()
+    {
+        return await GetPrestatairesUseCase.ExecuteAsync();
+    }
+
+    private async Task<IEnumerable<PrestationCategorie>> GetPrestationCategoriesAsync()
+    {
+        return await GetPrestationCategoriesUseCase.ExecuteAsync();
+    }
+
+    private async Task<IEnumerable<FormationSanitaire>> GetFosasAsync()
+    {
+        return await ViewFosasUseCase.ExecuteAsync();
+    }
+
+    private async Task<IEnumerable<TypeFormationSanitaire>> GetFosaTypesAsync()
+    {
+        return await GetFosaTypesUseCase.ExecuteAsync();
+    }
+
+    private async Task<IEnumerable<ZoneDeSante>> GetAllZoneDeSanteAsync()
+    {
+        return await GetZoneDeSantesUseCase.ExecuteAsync();
+    }
+
+    private async Task OnValidSubmitAsync()
+    {
+        try
+        {
+            await form.Validate();
+            if (form.IsValid)
+            {
+                await AddPrestationUseCase.ExecuteAsync(prestation);
+                Snackbar.Add("Prestation ajoutée avec succès!", MudBlazor.Severity.Info);
+                NavigationManager.NavigateTo("/prestations");
+            }
+            
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add(exception.Message, MudBlazor.Severity.Error);
+            //throw exception;
+        }
+    }
+}

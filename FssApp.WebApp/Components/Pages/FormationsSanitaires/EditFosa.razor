@@ -1,0 +1,115 @@
+﻿@page "/editfosa/{id:int}"
+
+@inject IEditFosaUseCase EditFosaUseCase
+@inject IGetFosaByIdUseCase GetFosaByIdUseCase
+
+@inject IGetFosaTypesUseCase GetFosaTypesUseCase
+@inject IGetZoneDeSanteUseCase GetAllZoneDeSanteUseCase
+@inject NavigationManager NavigationManager
+
+<h2>MODIFIER FOSA</h2>
+
+<MudCard>
+    <MudCardContent>
+        <MudForm Model="@fosa" @ref="form" Validation="@(fosaValidator.ValidateValue)" ValidationDelay="0">
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Nom fosa" @bind-Value="fosa.Nom" For="@(() => fosa.Nom)" Immediate="true" />
+                    <MudTextField Label="Adresse" @bind-Value="fosa.Adresse" For="@(() => fosa.Adresse)" />
+                    <MudTextField Label="N° Téléphone" @bind-Value="fosa.Telephone" For="@(() => fosa.Telephone)" />
+                    <MudTextField Label="Nom du responsable" @bind-Value="fosa.ResponsableNom" For="@(() => fosa.ResponsableNom)" />
+                    <MudTextField Label="Postnom du responsable" @bind-Value="fosa.ResponsablePostNom" For="@(() => fosa.ResponsablePostNom)" />
+                    <MudTextField Label="Prénom du responsable" @bind-Value="fosa.ResponsablePrenom" For="@(() => fosa.ResponsablePrenom)" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="N° Téléphone du responsable" @bind-Value="fosa.ResponsableTelephone" For="@(() => fosa.ResponsableTelephone)" />
+                    <MudTextField Label="Adresse email du responsable" @bind-Value="fosa.ResponsableEmail" For="@(() => fosa.ResponsableEmail)" />
+                    <MudSelect Label="Statut" @bind-Value="fosa.Statut">
+                        <MudSelectItem Value=@("ETATIQUE")>Etatique</MudSelectItem>
+                        <MudSelectItem Value=@("CONFESSIONNEL")>Confessionnel</MudSelectItem>
+                        <MudSelectItem Value=@("PRIVE")>Privé</MudSelectItem>
+                    </MudSelect>
+                    <MudSelect Label="Fosa conventionnée" @bind-Value="fosa.FosaConventionnee" For="@(() => fosa.FosaConventionnee)" >
+                        <MudSelectItem Value="false">Non</MudSelectItem>
+                        <MudSelectItem Value="true">Oui</MudSelectItem>
+                    </MudSelect>
+                    <MudSelect Label="Type de fosa" @bind-Value="fosa.TypeFormationSanitaireId" For="@(() => fosa.TypeFormationSanitaireId)"
+                               Placeholder=@("Entrez le type de fosa") Immediate="true">
+                        <MudSelectItem Value="0">@("")</MudSelectItem>
+                        @foreach (var typeDeFosa in ListeTypeDeFosa)
+                        {
+                            <MudSelectItem Value="@typeDeFosa.Id">@typeDeFosa.Code</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudSelect Label="Zone de santé" @bind-Value="fosa.ZoneDeSanteId" For="@(() => fosa.ZoneDeSanteId)"
+                               Placeholder=@("Entrez la zone de santé") Immediate="true">
+                        <MudSelectItem Value="0">@("")</MudSelectItem>
+                        @foreach (var zoneDeSante in ListeZoneDeSante)
+                        {
+                            <MudSelectItem Value="@zoneDeSante.Id">@zoneDeSante.Nom</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </MudCardContent>
+    <MudCardActions Class="d-flex">
+        <MudButton Class="ml-auto" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await OnValidSubmitAsync())">Enregistrer</MudButton>
+    </MudCardActions>
+</MudCard>
+
+@code {
+    [Inject] ISnackbar Snackbar { get; set; }
+    private MudForm form;
+
+    [Parameter]
+    public int Id { get; set; }
+
+    private FormationSanitaire fosa { get; set; } = new FormationSanitaire();
+
+    private IEnumerable<TypeFormationSanitaire> ListeTypeDeFosa = new List<TypeFormationSanitaire>();
+    private IEnumerable<ZoneDeSante> ListeZoneDeSante = new List<ZoneDeSante>();
+
+    FormationSanitaireValidator fosaValidator = new FormationSanitaireValidator();
+
+    protected async override Task OnInitializedAsync()
+    {
+        ListeTypeDeFosa = await GetFosaTypesAsync();
+        ListeZoneDeSante = await GetAllZoneDeSanteAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        fosa = await GetFosaByIdUseCase.ExcuteAsync(Id);
+    }
+
+    private async Task<IEnumerable<TypeFormationSanitaire>> GetFosaTypesAsync()
+    {
+        return await GetFosaTypesUseCase.ExecuteAsync();
+    }
+
+    private async Task<IEnumerable<ZoneDeSante>> GetAllZoneDeSanteAsync()
+    {
+        return await GetAllZoneDeSanteUseCase.ExecuteAsync();
+    }
+
+    private async Task OnValidSubmitAsync()
+    {
+        try
+        {
+            await form.Validate();
+            if (form.IsValid)
+            {
+                await EditFosaUseCase.ExecuteAsync(fosa);
+                Snackbar.Add("Formation sanitaire modifiée avec succès!", MudBlazor.Severity.Info);
+                NavigationManager.NavigateTo("/formations-sanitaires");
+            }
+            
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add(exception.Message, MudBlazor.Severity.Error);
+            //throw exception;
+        }
+    }
+}

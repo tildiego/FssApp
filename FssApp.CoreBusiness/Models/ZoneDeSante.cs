@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace FssApp.CoreBusiness.Models;
 
@@ -17,5 +18,5 @@ public partial class ZoneDeSante
 
     public virtual District District { get; set; } = null!;
 
-    public virtual ICollection<FormationSanitaire> FormationSanitaires { get; set; } = new List<FormationSanitaire>();
+    public virtual ICollection<FormationSanitaire>? FormationSanitaires { get; set; } = new List<FormationSanitaire>();
 }
