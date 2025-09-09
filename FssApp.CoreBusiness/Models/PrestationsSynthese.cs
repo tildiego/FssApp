@@ -1,5 +1,7 @@
-﻿using System;
+﻿using FssApp.CoreBusiness.DTOs;
+using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.Marshalling;
 
 namespace FssApp.CoreBusiness.Models;
 
@@ -15,7 +17,7 @@ public partial class PrestationsSynthese
 
     public int PrestationCategorieId { get; set; }
 
-    public int EffectifDeclare { get; set; }
+    public int? EffectifDeclare { get; set; }
 
     public decimal? CoutUnitaireDeclare { get; set; }
 

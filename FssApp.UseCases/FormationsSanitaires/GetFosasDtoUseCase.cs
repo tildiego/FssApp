@@ -10,11 +10,11 @@ using System.Threading.Tasks;
 
 namespace FssApp.UseCases.FormationsSanitaires
 {
-    public class ViewFosasDtoUseCase : IViewFosasDtoUseCase
+    public class GetFosasDtoUseCase : IGetFosasDtoUseCase
     {
         private readonly IFosaEFCoreRepository formationSanitaireRepository;
 
-        public ViewFosasDtoUseCase(IFosaEFCoreRepository formationSanitaireRepository)
+        public GetFosasDtoUseCase(IFosaEFCoreRepository formationSanitaireRepository)
         {
             this.formationSanitaireRepository = formationSanitaireRepository;
         }

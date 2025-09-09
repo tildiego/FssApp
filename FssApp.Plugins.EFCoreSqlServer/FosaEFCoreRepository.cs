@@ -63,7 +63,7 @@ namespace FssApp.Plugins.EFCoreSqlServer
                             ResponsablePrenom = fosa.ResponsablePrenom,
                             ResponsableEmail = fosa.ResponsableEmail,
                             ResponsableTelephone = fosa.ResponsableTelephone,
-                            FosaConventionnee = fosa.FosaConventionnee ? "Oui" : "Non",
+                            FosaConventionnee = fosa.FosaConventionnee ? true : false,
                             Statut = fosa.Statut,
                             ToBeDeleted = fosa.ToBeDeleted
                         };

@@ -3,8 +3,8 @@ using FssApp.CoreBusiness.Models;
 
 namespace FssApp.UseCases.Interfaces
 {
-    public interface IViewPrestationsUseCase
+    public interface IGetFosasDtoUseCase
     {
-        Task<IEnumerable<PrestationDto>> ExecuteAsync();
+        Task<IEnumerable<FormationSanitaireDto>> ExecuteAsync();
     }
 }

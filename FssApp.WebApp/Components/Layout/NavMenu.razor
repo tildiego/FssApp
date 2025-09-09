@@ -1,4 +1,4 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@* <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">FssApp.WebApp</a>
     </div>
@@ -31,12 +31,12 @@
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Prestations
             </NavLink>
         </div>
-
-        @* <div class="nav-item px-3">
-            <NavLink class="nav-link" href="data-grid-test">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> MudBlazor Data Grid Test
-            </NavLink>
-        </div> *@
     </nav>
-</div>
+</div> *@
 
+<MudNavMenu>
+    <MudNavLink Href="" Match="NavLinkMatch.All">Home</MudNavLink>
+    <MudNavLink Href="weather" Match="NavLinkMatch.Prefix">Weather</MudNavLink>
+    <MudNavLink Href="formations-sanitaires" Match="NavLinkMatch.Prefix">Formations sanitaires</MudNavLink>
+    <MudNavLink Href="prestations" Match="NavLinkMatch.Prefix">Prestations</MudNavLink>
+</MudNavMenu>

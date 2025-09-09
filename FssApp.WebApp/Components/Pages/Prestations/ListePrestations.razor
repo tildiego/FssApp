@@ -4,21 +4,21 @@
 
 @inject NavigationManager NavigationManager
 
-@inject IViewPrestationsUseCase ViewPrestationsUseCase
+@inject IGetPrestationsUseCase ViewPrestationsUseCase
 @inject IGetPrestationByIdUseCase GetPrestationByIdUseCase
 @inject IDeletePrestationByIdUseCase DeletePrestationByIdUseCase
 
-<MudDataGrid T="PrestationDto" MultiSelection="true" Items="@Prestations" SortMode="SortMode.Multiple" Filterable="true" QuickFilter="@quickFilter"
-             Hideable="true" FixedHeader ShowMenuIcon Height="550px" RowClick="@RowClicked" RowContextMenuClick="@RowRightClicked" 
-             SelectedItemsChanged="@SelectedItemsChanged" Virtualize>
+<MudDataGrid T="PrestationDto" MultiSelection="true" Items="@prestations" SortMode="SortMode.Multiple" Filterable="true" QuickFilter="@quickFilter"
+             Hideable="true" FixedHeader="true" FixedFooter="true" ShowMenuIcon Height="550px" RowClick="@RowClicked" RowContextMenuClick="@RowRightClicked"
+             SelectedItemsChanged="@SelectedItemsChanged">
     <ToolBarContent>
-        <MudTextField @bind-Value="searchString" Placeholder="Recherche" Adornment="Adornment.Start" Immediate="true"
+        @* <MudTextField @bind-Value="searchString" Placeholder="Recherche" Adornment="Adornment.Start" Immediate="true"
             AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-        <MudSpacer />
-        <MudText Typo="Typo.h6">LISTE DES FORMATIONS SANITAIRES</MudText>
+        <MudSpacer /> *@
+        <MudText Typo="Typo.h6">LISTE DES PRESTATIONS</MudText>
     </ToolBarContent>
     <Columns>
-        @* <SelectColumn T="PrestationDto" /> *@
+        <SelectColumn T="PrestationDto" />
         <PropertyColumn Property="x => x.PrestationId" Title="PRESTATION ID" />
         <PropertyColumn Property="x => x.Annee" Title="Année" />
         <PropertyColumn Property="x => x.Mois" Title="Mois" />
@@ -40,7 +40,7 @@
                 <MudStack Row>
                     <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Success"
                                 Href=@($"/edit-prestation/{context.Item.PrestationId}")>Modifier</MudButton>
-                    <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Warning"
+                    <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Secondary"
                                OnClick="@(async () => await HandleDelete(context.Item.PrestationId))">Supprimer</MudButton>
                 </MudStack>
             </CellTemplate>
@@ -54,7 +54,9 @@
 </MudDataGrid>
 
 <div class="mt-4">
-<MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/add-prestation">Ajouter prestation</MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/add-prestation">Ajouter prestation</MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Warning" 
+        OnClick="@(async () => await HandleBulkDelete())">Supprimer prestation(s) sélectionnée(s)</MudButton>
 </div>
 
 @* <div class="d-flex flex-wrap mt-4">
@@ -80,14 +82,15 @@
 @code {
     [Inject] ISnackbar Snackbar { get; set; }
 
-    private IEnumerable<PrestationDto> Prestations = new List<PrestationDto>();
+    private IEnumerable<PrestationDto> prestations = new List<PrestationDto>();
+    private HashSet<PrestationDto> prestationsToBeDeleted = new HashSet<PrestationDto>();
     private string searchString;
     private bool sortNameByLength;
     private List<string> events = new(); 
 
     protected async override Task OnInitializedAsync()
     {
-        Prestations = await GetAllPrestationAsync();
+        prestations = await GetAllPrestationAsync();
     }
 
     private async Task<IEnumerable<PrestationDto>> GetAllPrestationAsync()
@@ -98,11 +101,29 @@
     public async Task HandleDelete(int prestationId)
     {
         var prestation = await GetPrestationByIdUseCase.ExcuteAsync(prestationId);
+
         await DeletePrestationByIdUseCase.ExecuteAsync(prestationId);
-        
+
         Snackbar.Add($"Prestation (ID : {prestationId} - Fosa : {prestation.FormationSanitaire.Nom}) \n supprimée avec succès!", MudBlazor.Severity.Info);
 
-        await Task.Delay(3000);
+        //await Task.Delay(3000);
+        NavigationManager.Refresh(true);
+    }
+
+    public async Task HandleBulkDelete()
+    {
+        if (prestationsToBeDeleted.Count == 0)
+        {
+            Snackbar.Add("Aucune prestation sélectionnée pour la suppression!", MudBlazor.Severity.Warning);
+            return;
+        }
+
+        foreach (var prestation in prestationsToBeDeleted)
+        {
+            await DeletePrestationByIdUseCase.ExecuteAsync(prestation.PrestationId);
+        }  
+        
+        Snackbar.Add($"{prestationsToBeDeleted.Count} prestation(s) supprimée(s) avec succès!", MudBlazor.Severity.Info);
         NavigationManager.Refresh(true);
     }
 
@@ -148,5 +169,6 @@
     void SelectedItemsChanged(HashSet<PrestationDto> items)
     {
         events.Insert(0, $"Event = SelectedItemsChanged, Data = {System.Text.Json.JsonSerializer.Serialize(items)}");
+        prestationsToBeDeleted = new HashSet<PrestationDto>(items);
     }
 }

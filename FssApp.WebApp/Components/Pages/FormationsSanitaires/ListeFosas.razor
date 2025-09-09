@@ -4,7 +4,7 @@
 
 @inject NavigationManager NavigationManager
 
-@inject IViewFosasDtoUseCase ViewFosasDtoUseCase
+@inject IGetFosasDtoUseCase ViewFosasDtoUseCase
 @inject IGetFosaByIdUseCase GetFosaByIdUseCase
 @inject IDeleteFosaByIdUseCase DeleteFosaByIdUseCase
 
@@ -12,10 +12,10 @@
              Hideable="true" FixedHeader ShowMenuIcon Height="550px" RowClick="@RowClicked" RowContextMenuClick="@RowRightClicked" 
              SelectedItemsChanged="@SelectedItemsChanged">
     <ToolBarContent>
-        <MudTextField @bind-Value="searchString" Placeholder="Recherche" Adornment="Adornment.Start" Immediate="true"
-            AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-        <MudSpacer />
         <MudText Typo="Typo.h6">LISTE DES FORMATIONS SANITAIRES</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString" Placeholder="Recherche" Adornment="Adornment.Start" Immediate="true"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
     </ToolBarContent>
     <Columns>
         @* <SelectColumn T="FormationSanitaireDto" /> *@

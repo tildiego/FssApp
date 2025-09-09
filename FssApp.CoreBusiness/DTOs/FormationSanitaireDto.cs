@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace FssApp.CoreBusiness.DTOs;
 
 public class FormationSanitaireDto
 {
+    [Key]
+    public int FosaId { get; set; }
     public string? Province { get; set; }
 
     public string? District { get; set; }
@@ -13,7 +16,6 @@ public class FormationSanitaireDto
 
     public string? TypeFosa { get; set; }
 
-    public int FosaId { get; set; }
 
     public string Fosa { get; set; } = null!;
 
@@ -39,5 +41,5 @@ public class FormationSanitaireDto
 
     public string? ResponsableTelephone { get; set; }
 
-    public string FosaConventionnee { get; set; } = null!;
+    public bool FosaConventionnee { get; set; }
 }

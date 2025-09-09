@@ -22,8 +22,8 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddMudServices();
 
-builder.Services.AddTransient<IViewFosasUseCase, ViewFosasUseCase>();
-builder.Services.AddTransient<IViewFosasDtoUseCase, ViewFosasDtoUseCase>();
+builder.Services.AddTransient<IGetFosasUseCase, GetFosasUseCase>();
+builder.Services.AddTransient<IGetFosasDtoUseCase, GetFosasDtoUseCase>();
 builder.Services.AddTransient<IAddFosaUseCase, AddFosaUseCase>();
 builder.Services.AddTransient<IEditFosaUseCase, EditFosaUseCase>();
 builder.Services.AddTransient<IGetFosaByIdUseCase, GetFosaByIdUseCase>();
@@ -36,10 +36,11 @@ builder.Services.AddTransient<IGetMoisUseCase, GetMoisUseCase>();
 builder.Services.AddTransient<IGetProvincesUseCase, GetProvincesUseCase>();
 builder.Services.AddTransient<IGetDistrictsUseCase, GetDistrictsUseCase>();
 builder.Services.AddTransient<IGetAnneesUseCase, GetAnneesUseCase>();
+builder.Services.AddTransient<IGetServiceUseCase, GetServiceUseCase>();
 
 
 
-builder.Services.AddTransient<IViewPrestationsUseCase, ViewPrestationsUseCase>();
+builder.Services.AddTransient<IGetPrestationsUseCase, GetPrestationsUseCase>();
 builder.Services.AddTransient<IAddPrestationUseCase, AddPrestationUseCase>();
 builder.Services.AddTransient<IEditPrestationUseCase, EditPrestationUseCase>();
 builder.Services.AddTransient<IGetPrestationByIdUseCase, GetPrestationByIdUseCase>();
@@ -48,6 +49,7 @@ builder.Services.AddTransient<IGetPrestatairesUseCase, GetPrestatairesUseCase>()
 builder.Services.AddTransient<IGetPrestationCategoriesUseCase, GetPrestationCategoriesUseCase>();
 
 builder.Services.AddSingleton<IFosaEFCoreRepository, FosaEFCoreRepository>();
+builder.Services.AddSingleton<IPrestationCategorieEFCoreRepository, PrestationCategorieEFCoreRepository>();
 builder.Services.AddSingleton<IPrestationEFCoreRepository, PrestationEFCoreRepository>();
 builder.Services.AddSingleton<IProvinceEFCoreRepository, ProvinceEFCoreRepository>();
 builder.Services.AddSingleton<IDistrictEFCoreRepository, DistrictEFCoreRepository>();
@@ -58,7 +60,7 @@ builder.Services.AddSingleton<IPrestataireEFCoreRepository, PrestataireEFCoreRep
 builder.Services.AddSingleton<IMonnaieEFCoreRepository, MonnaieEFCoreRepository>();
 builder.Services.AddSingleton<IMoisEFCoreRepository, MoisEFCoreRepository>();
 builder.Services.AddSingleton<IAnneeEFCoreRepository, AnneeEFCoreRepository>();
-builder.Services.AddSingleton<IPrestationCategorieEFCoreRepository, PrestationCategorieEFCoreRepository>();
+builder.Services.AddSingleton<IServiceEFCoreRepository, ServiceEFCoreRepository>();
 
 
 

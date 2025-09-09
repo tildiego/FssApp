@@ -1,62 +1,93 @@
-﻿@page "/editprestation/{id:int}"
+﻿@page "/edit-prestation/{id:int}"
 
-@inject IEditFosaUseCase EditFosaUseCase
-@inject IGetFosaByIdUseCase GetFosaByIdUseCase
-
+@inject IEditPrestationUseCase EditPrestationUseCase
+@inject IGetFosasUseCase ViewFosasUseCase
+@inject IGetFosasDtoUseCase ViewFosasDtoUseCase
 @inject IGetFosaTypesUseCase GetFosaTypesUseCase
-@inject IGetZoneDeSanteUseCase GetAllZoneDeSanteUseCase
+@inject IGetZoneDeSanteUseCase GetZoneDeSantesUseCase
+@inject IGetPrestatairesUseCase GetPrestatairesUseCase
+@inject IGetPrestationCategoriesUseCase GetPrestationCategoriesUseCase
+@inject IGetAnneesUseCase GetAnneesUseCase
+@inject IGetMoisUseCase GetMoisUseCase
+@inject IGetServiceUseCase GetServiceUseCase
+@inject IGetMonnaiesUseCase GetMonnaiesUseCase
+@inject IGetPrestationByIdUseCase GetPrestationByIdUseCase
+
 @inject NavigationManager NavigationManager
 
-<h2>MODIFIER FOSA</h2>
+<h2>ENREGISTRER UNE NOUVELLE PRESTATION</h2>
 
-<MudCard>
-    <MudCardContent>
-        <MudForm Model="@fosa" @ref="form" Validation="@(fosaValidator.ValidateValue)" ValidationDelay="0">
-            <MudGrid>
-                <MudItem xs="12" sm="6">
-                    <MudTextField Label="Nom fosa" @bind-Value="fosa.Nom" For="@(() => fosa.Nom)" Immediate="true" />
-                    <MudTextField Label="Adresse" @bind-Value="fosa.Adresse" For="@(() => fosa.Adresse)" />
-                    <MudTextField Label="N° Téléphone" @bind-Value="fosa.Telephone" For="@(() => fosa.Telephone)" />
-                    <MudTextField Label="Nom du responsable" @bind-Value="fosa.ResponsableNom" For="@(() => fosa.ResponsableNom)" />
-                    <MudTextField Label="Postnom du responsable" @bind-Value="fosa.ResponsablePostNom" For="@(() => fosa.ResponsablePostNom)" />
-                    <MudTextField Label="Prénom du responsable" @bind-Value="fosa.ResponsablePrenom" For="@(() => fosa.ResponsablePrenom)" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField Label="N° Téléphone du responsable" @bind-Value="fosa.ResponsableTelephone" For="@(() => fosa.ResponsableTelephone)" />
-                    <MudTextField Label="Adresse email du responsable" @bind-Value="fosa.ResponsableEmail" For="@(() => fosa.ResponsableEmail)" />
-                    <MudSelect Label="Statut" @bind-Value="fosa.Statut">
-                        <MudSelectItem Value=@("ETATIQUE")>Etatique</MudSelectItem>
-                        <MudSelectItem Value=@("CONFESSIONNEL")>Confessionnel</MudSelectItem>
-                        <MudSelectItem Value=@("PRIVE")>Privé</MudSelectItem>
-                    </MudSelect>
-                    <MudSelect Label="Fosa conventionnée" @bind-Value="fosa.FosaConventionnee" For="@(() => fosa.FosaConventionnee)" >
-                        <MudSelectItem Value="false">Non</MudSelectItem>
-                        <MudSelectItem Value="true">Oui</MudSelectItem>
-                    </MudSelect>
-                    <MudSelect Label="Type de fosa" @bind-Value="fosa.TypeFormationSanitaireId" For="@(() => fosa.TypeFormationSanitaireId)"
-                               Placeholder=@("Entrez le type de fosa") Immediate="true">
-                        <MudSelectItem Value="0">@("")</MudSelectItem>
-                        @foreach (var typeDeFosa in ListeTypeDeFosa)
-                        {
-                            <MudSelectItem Value="@typeDeFosa.Id">@typeDeFosa.Code</MudSelectItem>
-                        }
-                    </MudSelect>
-                    <MudSelect Label="Zone de santé" @bind-Value="fosa.ZoneDeSanteId" For="@(() => fosa.ZoneDeSanteId)"
-                               Placeholder=@("Entrez la zone de santé") Immediate="true">
-                        <MudSelectItem Value="0">@("")</MudSelectItem>
-                        @foreach (var zoneDeSante in ListeZoneDeSante)
-                        {
-                            <MudSelectItem Value="@zoneDeSante.Id">@zoneDeSante.Nom</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-            </MudGrid>
-        </MudForm>
-    </MudCardContent>
-    <MudCardActions Class="d-flex">
-        <MudButton Class="ml-auto" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await OnValidSubmitAsync())">Enregistrer</MudButton>
-    </MudCardActions>
-</MudCard>
+@if (formationSanitaireDtoList.Count() > 0 && prestataireList.Count() > 0 && prestationCategorieList.Count() > 0)
+{
+    <MudCard>
+        <MudCardContent>
+            <MudForm @ref="form">
+                <MudGrid>
+                    <MudItem xs="12" sm="6">
+                        <MudSelect Label="Année" @bind-Value="Annee" Required="true" RequiredError="L'année est obligatoire">
+                            @foreach (var annee in anneeList)
+                            {
+                                <MudSelectItem Value="@annee">@annee.Nom</MudSelectItem>
+                            }
+                        </MudSelect>
+                        <MudSelect Label="Mois" @bind-Value="Mois" Required="true" RequiredError="Le mois est obligatoire">
+                            @foreach (var mois in moisList)
+                            {
+                                <MudSelectItem Value="@mois">@mois.Nom</MudSelectItem>
+                            }
+                        </MudSelect>
+                        <MudSelect Label="Monnaie" @bind-Value="Monnaie" Required="true" RequiredError="La monnaie est obligatoire">
+                            @foreach (var monnaie in monnaieList)
+                            {
+                                <MudSelectItem Value="@monnaie">@monnaie.Nom</MudSelectItem>
+                            }
+                        </MudSelect>
+                        <MudStack>
+                            <MudAutocomplete T="FormationSanitaireDto" Label="Formation Sanitaire" @bind-Value="FormationSanitaireDto"
+                                             SearchFunc="@SearchFormationSanitaire" Clearable="true" CoerceValue="true" CoerceText="true"
+                                             Dense="true" ResetValueOnEmptyText="true" MaxItems="null" SelectValueOnTab="true"
+                                             ToStringFunc="GetFormationSanitaireString" Required="true" RequiredError="La fosa est obligatoire" />
+                        </MudStack>
+                        <MudStack>
+                            <MudAutocomplete T="Prestataire" Label="Prestataire" @bind-Value="Prestataire" SearchFunc="@SearchPrestataire"
+                                             Clearable="true" CoerceValue="true" CoerceText="true" Dense="true" ResetValueOnEmptyText="true"
+                                             MaxItems="null" SelectValueOnTab="true" ToStringFunc="GetPrestataireString"
+                                             Required="true" RequiredError="Le prestataire est obligatoire" />
+                        </MudStack>
+                        <MudStack>
+                            <MudAutocomplete T="PrestationCategorie" Label="Prestation catégorie" @bind-Value="PrestationCategorie"
+                                             SearchFunc="@SearchPrestationCategorie" Clearable="true" CoerceValue="true" CoerceText="true"
+                                             Dense="true" ResetValueOnEmptyText="true" MaxItems="null" SelectValueOnTab="true"
+                                             ToStringFunc="GetPrestationCategorieString" Required="true"
+                                             RequiredError="La prestation catégorie est obligatoire" />
+                        </MudStack>
+
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField T="int?" InputType="InputType.Number" Label="Effectif déclaré" @bind-Value="EffectifDeclare" />
+                        <MudNumericField T="decimal?" InputType="InputType.Number" Format="N2" Culture="CultureInfo.InvariantCulture"
+                                      Label="Coût unitaire déclaré" @bind-Value="CoutUnitaireDeclare" />
+                        <MudNumericField T="decimal?" InputType="InputType.Number" Format="N2" Culture="CultureInfo.InvariantCulture"
+                                      Label="Coût total déclaré" @bind-Value="CoutTotalDeclare" Disabled="true" />
+                        <MudNumericField T="int?" InputType="InputType.Number" Label="Effectif vérifié" @bind-Value="EffectifVerifie" />
+                        <MudNumericField T="decimal?" InputType="InputType.Number" Format="N2" Culture="CultureInfo.InvariantCulture"
+                                      Label="Coût unitaire vérifié" @bind-Value="CoutUnitaireVerifie" />
+                        <MudNumericField T="decimal?" InputType="InputType.Number" Format="N2" Culture="CultureInfo.InvariantCulture"
+                                      Label="Coût total vérifié" @bind-Value="CoutTotalVerifie" Disabled="true" />
+                    </MudItem>
+                </MudGrid>
+            </MudForm>
+        </MudCardContent>
+        <MudCardActions Class="d-flex">
+            <MudButton Class="ml-auto" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await OnValidSubmitAsync())">Enregistrer</MudButton>
+        </MudCardActions>
+    </MudCard>
+}
+else
+{
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+    <span class="ml-2">Chargement des données...</span>
+}
 
 @code {
     [Inject] ISnackbar Snackbar { get; set; }
@@ -65,33 +96,232 @@
     [Parameter]
     public int Id { get; set; }
 
-    private FormationSanitaire fosa { get; set; } = new FormationSanitaire();
+    private int? _effectifDeclare;
+    private int? EffectifDeclare
+    {
+        get => _effectifDeclare;
+        set
+        {
+            if (_effectifDeclare != value)
+            {
+                _effectifDeclare = value;
+                OnEffectifDeclareChanged(value);
+            }
+        }
+    }
+    private decimal? _coutUnitaireDeclare;
+    private decimal? CoutUnitaireDeclare
+    {
+        get => _coutUnitaireDeclare;
+        set
+        {
+            if (_coutUnitaireDeclare != value)
+            {
+                _coutUnitaireDeclare = value;
+                OnCoutUnitaireDeclareChanged(value);
+            }
+        }
+    }
+    private decimal? CoutTotalDeclare { get; set; }
+    private int? _effectifVerifie;
+    private int? EffectifVerifie
+    {
+        get => _effectifVerifie;
+        set
+        {
+            if (_effectifVerifie != value)
+            {
+                _effectifVerifie = value;
+                OnEffectifVerifieChanged(value);
+            }
+        }
+    }
+    private decimal? _coutUnitaireVerifie;
+    private decimal? CoutUnitaireVerifie
+    {
+        get => _coutUnitaireVerifie;
+        set
+        {
+            if (_coutUnitaireVerifie != value)
+            {
+                _coutUnitaireVerifie = value;
+                OnCoutUnitaireVerifieChanged(value);
+            }
+        }
+    }
+    private decimal? CoutTotalVerifie { get; set; }
 
-    private IEnumerable<TypeFormationSanitaire> ListeTypeDeFosa = new List<TypeFormationSanitaire>();
-    private IEnumerable<ZoneDeSante> ListeZoneDeSante = new List<ZoneDeSante>();
+    //private PrestationsHelper PrestationsHelper { get; set; } = new();
+    private PrestationsSynthese Prestation { get; set; } = new();
+    private Prestataire? Prestataire { get; set; } = new();
+    private PrestationCategorie? PrestationCategorie { get; set; } = new();
+    private FormationSanitaireDto? FormationSanitaireDto { get; set; } = new();
+    private Annee? Annee { get; set; } = new();
+    private Moi? Mois { get; set; } = new();
+    private Monnaie? Monnaie { get; set; } = new();
+    private Service? Service { get; set; } = new();
 
-    FormationSanitaireValidator fosaValidator = new FormationSanitaireValidator();
+    private IEnumerable<FormationSanitaireDto> formationSanitaireDtoList = new List<FormationSanitaireDto>();
+    private IEnumerable<Prestataire> prestataireList = new List<Prestataire>();
+    private IEnumerable<PrestationCategorie> prestationCategorieList = new List<PrestationCategorie>();
+    private IEnumerable<Annee> anneeList = new List<Annee>();
+    private IEnumerable<Moi> moisList = new List<Moi>();
+    private IEnumerable<Service> serviceList = new List<Service>();
+    private IEnumerable<Monnaie> monnaieList = new List<Monnaie>();
+
 
     protected async override Task OnInitializedAsync()
     {
-        ListeTypeDeFosa = await GetFosaTypesAsync();
-        ListeZoneDeSante = await GetAllZoneDeSanteAsync();
+        prestataireList = await GetPrestatairesAsync();
+        prestationCategorieList = await GetPrestationCategoriesAsync();
+
+        formationSanitaireDtoList = await GetFormationSanitaireDtoAsync();
+        anneeList = await GetAnneesAsync();
+        moisList = await GetMoisAsync();
+        serviceList = await GetServicesAsync();
+        monnaieList = await GetMonnaiesAsync();
+
+
+        
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        fosa = await GetFosaByIdUseCase.ExcuteAsync(Id);
+        Prestation = await GetPrestationByIdUseCase.ExcuteAsync(Id);
+        if(Prestation is not null)
+        {
+            EffectifDeclare = Prestation.EffectifDeclare.Value;
+            CoutUnitaireDeclare = Prestation.CoutUnitaireDeclare.Value;
+            CoutTotalDeclare = Prestation.CoutTotalDeclare.Value;
+            EffectifVerifie = Prestation.EffectifVerifie.Value;
+            CoutUnitaireVerifie = Prestation.CoutUnitaireVerifie.Value;
+            CoutTotalVerifie = Prestation.CoutTotalVerifie.Value;
+            FormationSanitaireDto = formationSanitaireDtoList.FirstOrDefault(x => x.FosaId == Prestation.FormationSanitaireId);
+            Prestataire = prestataireList.FirstOrDefault(x => x.Id == Prestation.PrestataireId);
+            PrestationCategorie = prestationCategorieList.FirstOrDefault(x => x.Id == Prestation.PrestationCategorieId);
+            Annee = anneeList.FirstOrDefault(x => x.Id == Prestation.AnneeId);
+            Mois = moisList.FirstOrDefault(x => x.Id == Prestation.MoisId);
+            Monnaie = monnaieList.FirstOrDefault(x => x.Id == Prestation.MonnaieId);
+        }
+        // else
+        //     ResetForm();)
+        // FormationSanitaireDto = null;
+        // Prestataire = null;
+        // PrestationCategorie = null;
+        // Annee = null;
+        // Mois = null;
+        // Monnaie = null;
     }
 
-    private async Task<IEnumerable<TypeFormationSanitaire>> GetFosaTypesAsync()
+    private void OnEffectifDeclareChanged(int? newValue)
     {
-        return await GetFosaTypesUseCase.ExecuteAsync();
+        if (EffectifDeclare.HasValue && CoutUnitaireDeclare.HasValue)
+        {
+            CoutTotalDeclare = EffectifDeclare.Value * CoutUnitaireDeclare.Value;
+        }
+        else
+        {
+            CoutTotalDeclare = null;
+        }
     }
 
-    private async Task<IEnumerable<ZoneDeSante>> GetAllZoneDeSanteAsync()
+    private void OnCoutUnitaireDeclareChanged(decimal? value)
     {
-        return await GetAllZoneDeSanteUseCase.ExecuteAsync();
+        if (EffectifDeclare.HasValue && CoutUnitaireDeclare.HasValue)
+        {
+            CoutTotalDeclare = EffectifDeclare.Value * CoutUnitaireDeclare.Value;
+        }
+        else
+        {
+            CoutTotalDeclare = null;
+        }
     }
+
+    private void OnEffectifVerifieChanged(int? value)
+    {
+        if (EffectifVerifie.HasValue && CoutUnitaireVerifie.HasValue)
+        {
+            CoutTotalVerifie = EffectifVerifie.Value * CoutUnitaireVerifie.Value;
+        }
+        else
+        {
+            CoutTotalVerifie = null;
+        }
+    }
+
+    private void OnCoutUnitaireVerifieChanged(decimal? value)
+    {
+        if (EffectifVerifie.HasValue && CoutUnitaireVerifie.HasValue)
+        {
+            CoutTotalVerifie = EffectifVerifie.Value * CoutUnitaireVerifie.Value;
+        }
+        else
+        {
+            CoutTotalVerifie = null;
+        }
+    }
+
+    private async Task<IEnumerable<FormationSanitaireDto>> SearchFormationSanitaire(string value, CancellationToken token)
+    {
+        if (string.IsNullOrEmpty(value))
+            return await Task.FromResult(formationSanitaireDtoList);
+
+        var result = formationSanitaireDtoList.Where(x =>
+                    x.To_String().Contains(value, StringComparison.InvariantCultureIgnoreCase));
+
+        return await Task.FromResult(result);
+    }
+
+    private string GetFormationSanitaireString(FormationSanitaireDto? fosa)
+    {
+        if (fosa is null)
+            return string.Empty;
+        return fosa.To_String();
+    }
+
+    private async Task<IEnumerable<Prestataire>> SearchPrestataire(string value, CancellationToken token)
+    {
+        if (string.IsNullOrEmpty(value))
+            return await Task.FromResult(prestataireList);
+
+        var result = prestataireList.Where(x =>
+                    x.To_String().Contains(value, StringComparison.InvariantCultureIgnoreCase));
+
+        return await Task.FromResult(result);
+    }
+
+    private string GetPrestataireString(Prestataire? prestataire)
+    {
+        if (prestataire is null)
+            return string.Empty;
+        return prestataire.To_String();
+    }
+
+    private async Task<IEnumerable<PrestationCategorie>> SearchPrestationCategorie(string value, CancellationToken token)
+    {
+        if (string.IsNullOrEmpty(value))
+            return await Task.FromResult(prestationCategorieList);
+
+        var result = prestationCategorieList.Where(x =>
+                    x.To_String().Contains(value, StringComparison.InvariantCultureIgnoreCase));
+
+        return await Task.FromResult(result);
+    }
+
+    private string GetPrestationCategorieString(PrestationCategorie? prestationCategorie)
+    {
+        if (prestationCategorie is null)
+            return string.Empty;
+        return prestationCategorie.To_String();
+    }
+
+    private async Task<IEnumerable<Prestataire>> GetPrestatairesAsync() => await GetPrestatairesUseCase.ExecuteAsync();
+    private async Task<IEnumerable<PrestationCategorie>> GetPrestationCategoriesAsync() => await GetPrestationCategoriesUseCase.ExecuteAsync();
+    private async Task<IEnumerable<FormationSanitaireDto>> GetFormationSanitaireDtoAsync() => await ViewFosasDtoUseCase.ExecuteAsync();
+    private async Task<IEnumerable<Annee>> GetAnneesAsync() => await GetAnneesUseCase.ExecuteAsync();
+    private async Task<IEnumerable<Moi>> GetMoisAsync() => await GetMoisUseCase.ExecuteAsync();
+    private async Task<IEnumerable<Service>> GetServicesAsync() => await GetServiceUseCase.ExecuteAsync();
+    private async Task<IEnumerable<Monnaie>> GetMonnaiesAsync() => await GetMonnaiesUseCase.ExecuteAsync();
 
     private async Task OnValidSubmitAsync()
     {
@@ -100,16 +330,36 @@
             await form.Validate();
             if (form.IsValid)
             {
-                await EditFosaUseCase.ExecuteAsync(fosa);
-                Snackbar.Add("Formation sanitaire modifiée avec succès!", MudBlazor.Severity.Info);
-                NavigationManager.NavigateTo("/formations-sanitaires");
+                int year = int.Parse(Annee.Nom);
+                int month = Mois.Id;
+                int materniteId = serviceList.FirstOrDefault(x => x.Nom == "MATERNITE")?.Id ?? 1; // ID fixe pour la maternité
+
+                var prest = new PrestationsSynthese
+                {
+                    AnneeId = Annee.Id,
+                    MoisId = Mois.Id,
+                    FormationSanitaireId = FormationSanitaireDto.FosaId,
+                    PrestataireId = Prestataire.Id,
+                    PrestationCategorieId = PrestationCategorie.Id,
+                    MonnaieId = Monnaie.Id,
+                    EffectifDeclare = EffectifDeclare,
+                    CoutUnitaireDeclare = CoutUnitaireDeclare,
+                    CoutTotalDeclare = CoutTotalDeclare,
+                    EffectifVerifie = EffectifVerifie,
+                    CoutUnitaireVerifie = CoutUnitaireVerifie,
+                    CoutTotalVerifie = CoutTotalVerifie,
+                    DatePrestation = DateOnly.FromDateTime(new DateTime(year, month, 1)),
+                    ServiceId = materniteId
+                };
+                await EditPrestationUseCase.ExecuteAsync(prest);
+                Snackbar.Add("Prestation ajoutée avec succès!", MudBlazor.Severity.Info);
+                NavigationManager.NavigateTo("/prestations");
             }
-            
+
         }
         catch (Exception exception)
         {
             Snackbar.Add(exception.Message, MudBlazor.Severity.Error);
-            //throw exception;
         }
     }
 }

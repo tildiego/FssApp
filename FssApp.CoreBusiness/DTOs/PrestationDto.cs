@@ -26,7 +26,7 @@ namespace FssApp.CoreBusiness.DTOs
 
         public string? PrestationCategorie { get; set; }
 
-        public int EffectifDeclare { get; set; }
+        public int? EffectifDeclare { get; set; }
 
         public decimal? CoutUnitaireDeclare { get; set; }
 

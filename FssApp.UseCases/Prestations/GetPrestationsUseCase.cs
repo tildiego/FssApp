@@ -10,11 +10,11 @@ using System.Threading.Tasks;
 
 namespace FssApp.UseCases.Prestations
 {
-    public class ViewPrestationsUseCase : IViewPrestationsUseCase
+    public class GetPrestationsUseCase : IGetPrestationsUseCase
     {
         private readonly IPrestationEFCoreRepository prestationRepository;
 
-        public ViewPrestationsUseCase(IPrestationEFCoreRepository prestationRepository)
+        public GetPrestationsUseCase(IPrestationEFCoreRepository prestationRepository)
         {
             this.prestationRepository = prestationRepository;
         }
